@@ -121,15 +121,14 @@ for mode = 1:n_modes
      % but it will be in the next TP 
      % (a priori use of the PGD).
     Gammanew = Gammai;
-    Gammanew_orth = Gammai;
     Lambdanew = Lambdai;
     for m=1:mode-1
-        Gammanew_orth = Gammanew_orth - sqrt(Gammanew'*Ix*Gamma(:, m))*Gamma(:, m);
-        Lambda(:, m) = Lambda(:, m) + Lambdanew*sqrt(Gammanew'*Ix*Gamma(:,m));
+        Gammanew = Gammanew - sqrt(Gammanew'*Ix*Gamma(:, m))*Gamma(:, m);
+        Lambda(:, m) = Lambda(:, m) + Lambdanew*sqrt(Gammanew'*Ix*Gamma(:,m)));
     end
 
-    Gamma(:, mode) = Gammanew/sqrt(Gammanew_orth'*Ix*Gammanew_orth);
-    Lambda(:, mode) = Lambdanew * sqrt(Gammanew_orth'*Ix*Gammanew_orth);
+    Gamma(:, mode) = Gammanew / sqrt(Gammanew'*Ix*Gammanew);
+    Lambda(:, mode) = Lambdanew * sqrt(Gammanew'*Ix*Gammanew);
 
     % compute the new PGD approximation with the added mode
     U_PGD = Lambda*Gamma';
