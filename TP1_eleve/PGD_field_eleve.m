@@ -152,4 +152,5 @@ for mode = 1:n_modes
     pause(0.5)
 end
 
+saveas(figure(1),'Results.png');
 
