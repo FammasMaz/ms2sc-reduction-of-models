@@ -1,0 +1,144 @@
+\documentclass[11pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper,width=160mm,top=25mm,bottom=25mm]{geometry}
+\usepackage[skip=8pt plus1pt, indent=0pt]{parskip}
+\usepackage{minitoc}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{xfrac}
+\usepackage{physics}
+
+%Code Snippets
+\usepackage{listings}
+\input{snippets/style.tex}
+
+\usepackage{float}
+
+%tikzpicture
+\usepackage{tikz}
+\usepackage{scalerel}
+\usepackage{pict2e}
+\usepackage{tkz-euclide}
+\usetikzlibrary{calc}
+\usetikzlibrary{patterns,arrows.meta}
+\usetikzlibrary{shadows}
+\usetikzlibrary{external}
+
+%pgfplots
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\usepgfplotslibrary{statistics}
+\usepgfplotslibrary{fillbetween}
+
+% Add Bib
+\usepackage[backend=biber]{biblatex}
+\addbibresource{Rail19.bib}
+\addbibresource{ref2.bib}
+
+\usepackage{import}
+\usepackage{pdfpages}
+\usepackage{transparent}
+\usepackage{xcolor}
+
+\newcommand{\incfig}[2][1]{%
+    \def\svgwidth{#1\columnwidth}
+    \import{./assets/ink/}{#2.pdf_tex}
+}
+
+\pdfsuppresswarningpagegroup=1
+
+%Subplots
+% Images
+\usepackage{caption}        % Enables controlling the look and feel of captions, see package documentation
+\usepackage{subcaption}     % Recommended when making sub-figures
+\usepackage[nottoc]{tocbibind}  % Includes Bibliography, Index, list of Listing etc. to table of contents
+\newcommand{\source}[1]{\vspace{-4pt} \caption*{\hfill \footnotesize{Source: {#1}} } }   % Easily insert sources in images
+\usepackage{graphicx}   % Handle images
+\usepackage{wrapfig}    % Wrap text around images
+\usepackage{float}      % Force image location using "H"
+\usepackage{url}        % Insert urls
+\urlstyle{sf}           % Set url-style as "sans-serif". Other options are e.g. "same" or "rm"
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}   % Ruler
+
+
+
+% Fancy Setup
+\pagestyle{fancy}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyhead[L]{\makebox[0.8\textwidth][l]{\textsc{\rightmark}}} % truncated section name on left side
+\fancyfoot[C]{\thepage} % page number at bottom
+\setlength{\headheight}{14.5pt}
+
+% Document Setup
+\title{XFEM Report}
+\author{Muhammad Moeeze Hassan}
+\date{December 2022}
+
+\begin{document}
+
+\dominitoc
+
+% Title Page
+\begin{titlepage}
+    \begin{center}
+        \vspace*{1cm}
+            
+        \Huge
+        \textbf{Final Project Report}
+            
+        \vspace{0.5cm}
+        \LARGE
+        SNCF Project
+            
+        \vspace{1.5cm}
+            
+        \textbf{Muhammad Moeeze Hassan}
+            
+        \vfill
+            
+        Submitted to\\
+        \textbf{David Néron}
+            
+        \vspace{0.8cm}
+            
+        \includegraphics[width=0.4\textwidth]{assets/logo.png}
+            
+        \Large
+        Université Paris Saclay\\
+        31 Dec 2022
+            
+    \end{center}
+\end{titlepage}
+
+
+\tableofcontents
+\adjustmtc
+\newpage
+\listoffigures
+\newpage
+
+% Start the Report
+
+\chapter{TP1}
+\minitoc
+\pagebreak
+\label{Chap: TP 1}
+\input{Chapters/Chapitre1.tex}
+
+
+% % Add Appendix
+% \appendix
+% \chapter{Sample Chapter}
+% \label{A: sample chapter}
+% \pagebreak
+
+%print Bibliography
+\printbibliography
+
+\end{document}
