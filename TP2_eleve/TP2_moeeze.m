@@ -3,14 +3,15 @@ clear; close all; clc;
 %% Global parameters
 E = 1;
 S = 1;
-if_force = 1;
+if_force = 0;
+alpha = 1;
 
 %% Grid definition
 
 L = 1.0; % length of the domain
 T = 1.0; % final time
-nx = 5; % number of grid points
-nt = 7; % number of time steps
+nx = 1000; % number of grid points
+nt = 1000; % number of time steps
 
 lx0 = 0.0; % left boundary
 lt0 = 0.0; % initial time
@@ -62,7 +63,9 @@ for i = 1:nt-1
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Assembly of F and K
+%% Assembly of F, K and P
+
+M = alpha*Ix;
 
 F = Ix * f;
 ke = 1/dx*[1 -1; -1 1];
@@ -71,19 +74,26 @@ for i = 1:nx-1
     K(i:i+1, i:i+1) = K(i:i+1, i:i+1) + ke;
 end
 
+P = K + M/dt;
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Refactoring the solution matrix
 u(1, :) = ud0d;
 u(end, :) = udLd;
 dof_b = [1, nx];
 dof_u = setdiff(1:nx, dof_b);
-Kuu = K(dof_u, dof_u);
-Kub = K(dof_u, dof_b);
-Kbu = K(dof_b, dof_u);
-Kbb = K(dof_b, dof_b);
+Puu = P(dof_u, dof_u);
+Pub = P(dof_u, dof_b);
+Pbu = P(dof_b, dof_u);
+Pbb = P(dof_b, dof_b);
+Muu = M(dof_u, dof_u);
+
 
 Fu = F(dof_u, :);
-u(dof_u, :) = Kuu\(Fu - Kub*u(dof_b, :));
+for i=2:nt
+    u(dof_u, i) = Puu\(Fu(:, i) + Muu *u(dof_u, i-1)/dt - Pub*u(dof_b, i));
+end
+
 
 figure
 [lx_mesh, lt_mesh] = meshgrid(lx, lt);
@@ -91,9 +101,9 @@ mesh(lx_mesh, lt_mesh, u');
 xlabel('x')
 ylabel('t')
 zlabel('u')
-title(['Solution of the 1D wave equation with force = ', num2str(if_force)]);
-saveas(gcf, strcat('../Final Report/assets/TP2_ref_solution_', num2str(if_force), '.png'));
-saveas(gcf, strcat('assets/TP2_ref_solution_', num2str(if_force), '.png'));
+title(['Solution of the 1D Diff wave equation with force = ', num2str(if_force)]);
+saveas(gcf, strcat('../Final Report/assets/TP2_ref_Dif_solution_', num2str(if_force), '.png'));
+saveas(gcf, strcat('assets/TP2_ref_Dif_solution_', num2str(if_force), '.png'));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot collectively
