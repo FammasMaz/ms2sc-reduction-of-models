@@ -39,11 +39,7 @@ Ug = rand(n_T/10,n_X/10);
 Uf = interp2(mesh_x_g,mesh_t_g,Ug,mesh_x_f,mesh_t_f,'spline');
 
 % Display distribution
-figure()
-subplot(1,4,1)
-surf(xc,tc,Ug)
-title("Coarse distribution")
-shading interp
+ 
 
 subplot(1,4,2)
 surf(xf,tf,Uf)
