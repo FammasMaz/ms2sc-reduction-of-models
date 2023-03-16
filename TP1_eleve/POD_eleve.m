@@ -23,7 +23,7 @@ U = UCimage;
 %% 
 % SVD on the image
 
-[phi,S,V] = svd(U);
+[phi, S, V] = svd(U);
 %% 
 % Order for reconstruction ?
 

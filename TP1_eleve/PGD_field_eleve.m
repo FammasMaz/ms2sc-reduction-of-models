@@ -67,7 +67,7 @@ end
 %% PGD Approximation
 
 % Number of modes
-n_modes    = 20;
+n_modes    = 15;
 
 % initialisation
 Lambda     = zeros(n_T,n_modes);
@@ -75,7 +75,7 @@ Gamma      = zeros(n_X,n_modes);
 U_PGD      = zeros(n_T,n_X);
 PGD_error = zeros(n_modes,1);
 Ustar = zeros(n_T,n_X);
-error = []
+error = [];
 
 %% 
 % Greedy algorithm + fixed point 
@@ -107,7 +107,6 @@ for mode = 1:n_modes
         
         % update PGD error for stagnation criteria
         s = (Lambdai - Lambdaold)'*It*(Lambdai - Lambdaold)/(Lambdaold'*It*Lambdaold);
-        mode
     end
     
 
@@ -145,7 +144,7 @@ for mode = 1:n_modes
     den = den'*Ix*den;
     error = [error num/den];
     subplot(1,4,3)
-    surf(mesh_x_f,mesh_t_f,U_PGD)
+    surf(mesh_x_f,mesh_t_f,real(U_PGD))
     xlabel('x')
     ylabel('y')
     zlabel('U PGD')
@@ -162,4 +161,6 @@ for mode = 1:n_modes
 end
 
 saveas(figure(1),'Results.png');
+saveas(figure(1),'../Final Report/assets/TP_1_PGD_Results.png');
+
 

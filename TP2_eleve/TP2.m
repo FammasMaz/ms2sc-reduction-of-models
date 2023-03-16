@@ -3,14 +3,15 @@ clear; close all; clc;
 %% Global parameters
 E = 1;
 S = 1;
-if_force = 1;
+if_force = 0;
+nmodes = 15;
 
 %% Grid definition
 
 L = 1.0; % length of the domain
 T = 1.0; % final time
 nx = 1000; % number of grid points
-nt = 1000; % number of time steps
+nt = 100; % number of time steps
 
 lx0 = 0.0; % left boundary
 lt0 = 0.0; % initial time
@@ -86,4 +87,57 @@ zlabel('u')
 title(['Solution of the 1D wave equation with force = ', num2str(if_force)]);
 saveas(gcf, strcat('../Final Report/assets/TP2_ref_solution_', num2str(if_force), '.png'));
 saveas(gcf, strcat('assets/TP2_ref_solution_', num2str(if_force), '.png'));
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Plot collectively
+figure()
+subplot(1,3,1)
+surf(lx_mesh,lt_mesh,u')
+title("Coarse distribution")
+shading interp
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Reduction of the model PGD
+
+ucl = (1-lx/L)'*ud0d + (lx/L)'*udLd;
+G = F - K*ucl;
+
+lambda = lt;
+er = 1;
+iter = 0;
+nb_modes = 15;
+Lambda = zeros(nt,nb_modes);
+Gamma = zeros(nx,nb_modes);
+for i = 1:nb_modes
+    G - K*Lambda*lambda;
+    while er > 1e-3
+        old_lambda = lambda;
+        iter = iter + 1;
+        intlambda = lambda * It * lambda';
+        H = intlambda * K;
+        J = lambda * It * G';
+        Huu = H(dof_u, dof_u);
+        Ju = J(:, dof_u);
+        Lambda = zeros(nx, 1);
+        Lambda(dof_u) = (Huu\Ju')';
+        Lambda = Lambda / sqrt(Lambda'*K*Lambda);
+        lambda = (Lambda' * G);
+        er = ((lambda - old_lambda)*It*(lambda - old_lambda)')/ intlambda;
+    end
+    
+fprintf('\nNumber of iterations: %d', iter);
+fprintf('\n\nFinal error: %d', er);
+
+
+%% Cost = no.modes * n_iter * cost
+u_red = ucl + Lambda * lambda;
+figure
+[lx_mesh, lt_mesh] = meshgrid(lx, lt);
+mesh(lx_mesh, lt_mesh, u_red');
+xlabel('x')
+ylabel('t')
+zlabel('u')
+title(['Reduced Solution of the 1D wave equation with force = ', num2str(if_force)]);
+saveas(gcf, strcat('../Final Report/assets/TP2_red_solution_', num2str(if_force), '.png'));
+saveas(gcf, strcat('assets/TP2_red_solution_', num2str(if_force), '.png'));
 
