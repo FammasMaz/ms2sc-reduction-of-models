@@ -9,8 +9,8 @@ if_force = 1;
 
 L = 1.0; % length of the domain
 T = 1.0; % final time
-nx = 100; % number of grid points
-nt = 100; % number of time steps
+nx = 5; % number of grid points
+nt = 7; % number of time steps
 
 lx0 = 0.0; % left boundary
 lt0 = 0.0; % initial time
@@ -41,11 +41,11 @@ udLd = -sin(4*pi*lt)/T; % boundary condition
 
 %% discrete force
 if if_force==1
-   % f = (1e3 * (sin(3*pi*lt)/T)' * (sin(5*pi*lx)/L))';
+    f = (1e3 * (sin(3*pi*lt)/T)' * (sin(5*pi*lx)/L))';
     [mesh_x_f,mesh_t_f] = meshgrid(tf,xf);
     [mesh_x_g,mesh_t_g] = meshgrid(tc,xc);
-    fg = 10*rand(nx/10,nt/10);
-    f = interp2(mesh_x_g,mesh_t_g,fg,mesh_x_f,mesh_t_f,'spline');
+    %fg = 100*rand(nt/10,nx/10);
+    %f = interp2(mesh_x_g,mesh_t_g,fg,mesh_x_f,mesh_t_f,'spline');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -111,7 +111,7 @@ G = F - K*ucl;
 
 lambda = lt;
 iter = 0;
-W = zeros(nx, nt);
+W = zeros(nx, nt) + ucl;
 nb_modes = 5;
 error = zeros(1, nb_modes);
 for i = 1:nb_modes
@@ -132,11 +132,11 @@ for i = 1:nb_modes
     end
     G = G - K*Lambda*lambda;
     W = W + Lambda * lambda;
-    u_red = ucl + W;
+    
     num = zeros(nx, 1);
     den = zeros(nx, 1);
     for j=1:nx
-        num(j) = (u(j, :) - u_red(j, :))*It*(u(j, :) - u_red(j, :))';
+        num(j) = (u(j, :) - W(j, :))*It*(u(j, :) - W(j, :))';
         den(j) = (u(j, :))*It*(u(j, :))';
     end
     num = num'*Ix*num;
@@ -144,7 +144,7 @@ for i = 1:nb_modes
     error(i) = num/den;
 
     subplot(1,3,2)
-    mesh(lx_mesh,lt_mesh,u_red');
+    mesh(lx_mesh,lt_mesh,W');
     xlabel('x')
     ylabel('y')
     zlabel('U PGD')
@@ -160,7 +160,7 @@ for i = 1:nb_modes
     pause(0.5)
 end
 
-    
+u_red = W;
 fprintf('\nNumber of iterations: %d', iter);
 fprintf('\n\nFinal error: %d', er);
 saveas(gcf, strcat('../Final Report/assets/TP2_red_anim_solution_', num2str(if_force), '.png'));
