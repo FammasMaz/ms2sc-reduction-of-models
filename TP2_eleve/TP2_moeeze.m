@@ -41,11 +41,11 @@ udLd = -sin(4*pi*lt)/T; % boundary condition
 
 %% discrete force
 if if_force==1
-    %f = (1e3 * (sin(3*pi*lt)/T)' * (sin(5*pi*lx)/L))';
+    f = (1e3 * (sin(3*pi*lt)/T)' * (sin(5*pi*lx)/L))';
     [mesh_x_f,mesh_t_f] = meshgrid(tf,xf);
     [mesh_x_g,mesh_t_g] = meshgrid(tc,xc);
-    fg = 10*rand(nt/10,nx/10);
-    f = interp2(mesh_x_g,mesh_t_g,fg,mesh_x_f,mesh_t_f,'spline');
+    %fg = 10*rand(nt/10,nx/10);
+    %f = interp2(mesh_x_g,mesh_t_g,fg,mesh_x_f,mesh_t_f,'spline');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -113,11 +113,17 @@ figure(3)
 ucl = (1-lx/L)'*ud0d + (lx/L)'*udLd;
 G = F - K*ucl;
 
+% Do SVD
+[X,S,V] = svd(full(u));
+U_SVD = zeros(nt,nx);
+
+
 lambda = lt;
 iter = 0;
 W = zeros(nx, nt) + ucl;
 nb_modes = 9;
 error = zeros(1, nb_modes);
+error_svd = zeros(1, nb_modes);
 for i = 1:nb_modes
     er = 1;
     while er > 1e-3
@@ -137,15 +143,24 @@ for i = 1:nb_modes
     G = G - K*Lambda*lambda;
     W = W + Lambda * lambda;
     
+    % Do SVD
+    U_SVD = X(:,1:i)*S(1:i,1:i)*V(:,1:i)';
+    num_svd = zeros(nx, 1);
+
     num = zeros(nx, 1);
     den = zeros(nx, 1);
     for j=1:nx
         num(j) = (u(j, :) - W(j, :))*It*(u(j, :) - W(j, :))';
         den(j) = (u(j, :))*It*(u(j, :))';
+        %SVD num
+        num_svd(j) = (u(j, :) - U_SVD(j, :))*It*(u(j, :) - U_SVD(j, :))';
     end
     num = num'*Ix*num;
     den = den'*Ix*den;
     error(i) = num/den;
+    %SVD error
+    num_svd = num_svd'*Ix*num_svd;
+    error_svd(i) = num_svd/den;
     figure(2)
     subplot(1,3,2)
     mesh(lx_mesh,lt_mesh,W');
@@ -157,7 +172,10 @@ for i = 1:nb_modes
     title(Title)
     figure(2)
     subplot(1,3,3);
-    plot(error);
+    semilogy(real(error), 'r');
+    hold on
+    semilogy(real(error_svd), 'b');
+    legend('PGD', 'SVD')
     xlabel('modes');
     ylabel('error');
     Title2 = ["Error with "+ i " mode(s)"];
