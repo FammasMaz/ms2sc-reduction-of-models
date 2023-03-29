@@ -42,11 +42,11 @@ udLd = -sin(4*pi*lt)/T; % boundary condition
 
 %% discrete force
 if if_force==1
-    f = (1e3 * (sin(3*pi*lt)/T)' * (sin(5*pi*lx)/L))';
+    %f = (1e3 * (sin(3*pi*lt)/T)' * (sin(5*pi*lx)/L))';
     [mesh_x_f,mesh_t_f] = meshgrid(tf,xf);
     [mesh_x_g,mesh_t_g] = meshgrid(tc,xc);
-    %fg = 100*rand(nt/10,nx/10);
-    %f = interp2(mesh_x_g,mesh_t_g,fg,mesh_x_f,mesh_t_f,'spline');
+    fg = 10*rand(nt/10,nx/10);
+    f = interp2(mesh_x_g,mesh_t_g,fg,mesh_x_f,mesh_t_f,'spline');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -106,11 +106,15 @@ title(['Solution of the 1D Diff wave equation with force = ', num2str(if_force)]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot collectively
-figure()
+figure(2)
 subplot(1,3,1)
 surf(lx_mesh,lt_mesh,u')
 title("Coarse distribution")
 shading interp
+
+% Plot individual modes
+figure(3)
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Reduction of the model PGD
@@ -121,7 +125,7 @@ G = F - K*ucl - M*ucldot;
 lambda = lt;
 iter = 0;
 W = zeros(nx, nt) + ucl;
-nb_modes = 5;
+nb_modes = 9;
 error = zeros(1, nb_modes);
 for i = 1:nb_modes
     er = 1;
@@ -153,7 +157,7 @@ for i = 1:nb_modes
     num = num'*Ix*num;
     den = den'*Ix*den;
     error(i) = num/den;
-
+    figure(2)
     subplot(1,3,2)
     mesh(lx_mesh,lt_mesh,W');
     xlabel('x')
@@ -162,6 +166,7 @@ for i = 1:nb_modes
     shading interp
     Title = ["Approximation with "+ i " mode(s)"];
     title(Title)
+    figure(2)
     subplot(1,3,3);
     plot(error);
     xlabel('modes');
@@ -169,16 +174,27 @@ for i = 1:nb_modes
     Title2 = ["Error with "+ i " mode(s)"];
     title(Title2)    
     pause(0.5)
+    figure(3)
+    subplot(3,3,i)
+    mesh(lx_mesh,lt_mesh,(Lambda * lambda)');
 end
 
 u_red = W;
+figure(2)
 fprintf('\nNumber of iterations: %d', iter);
 fprintf('\n\nFinal error: %d', er);
 saveas(gcf, strcat('../Final Report/assets/TP2_red_anim_solution_', num2str(if_force), '.png'));
 saveas(gcf, strcat('assets/TP2_red_anim_solution_', num2str(if_force), '.png'));
 
+% Plot the reduced modes
+figure(3)
+sgtitle('Modes of the reduced model')
+saveas(gcf, strcat('assets/TP2_red_modes_', num2str(if_force), '.png'));
+saveas(gcf, strcat('../Final Report/assets/TP2_red_modes_', num2str(if_force), '.png'));
+
+
 %% Cost = no.modes * n_iter * cost
-figure
+figure(4)
 [lx_mesh, lt_mesh] = meshgrid(lx, lt);
 mesh(lx_mesh, lt_mesh, u_red');
 xlabel('x')
