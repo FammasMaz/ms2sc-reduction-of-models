@@ -3,8 +3,8 @@ clear; close all; clc;
 %% Global parameters
 E = 1;
 S = 1;
-if_force = 0;
-alpha = 1;
+if_force = 1;
+alpha = 5;
 
 %% Grid definition
 
@@ -115,9 +115,9 @@ shading interp
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Reduction of the model PGD
-
+ucldot = derivative(nt, u, It);
 ucl = (1-lx/L)'*ud0d + (lx/L)'*udLd;
-G = F - K*ucl;
+G = F - K*ucl - M*ucldot;
 
 lambda = lt;
 iter = 0;
