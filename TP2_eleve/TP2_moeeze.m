@@ -11,7 +11,7 @@ alpha = 5;
 L = 1.0; % length of the domain
 T = 1.0; % final time
 nx = 1000; % number of grid points
-nt = 1000; % number of time steps
+nt = 100; % number of time steps
 
 lx0 = 0.0; % left boundary
 lt0 = 0.0; % initial time
@@ -75,7 +75,6 @@ for i = 1:nx-1
 end
 
 P = K + M/dt;
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Refactoring the solution matrix
 u(1, :) = ud0d;
@@ -102,8 +101,8 @@ xlabel('x')
 ylabel('t')
 zlabel('u')
 title(['Solution of the 1D Diff wave equation with force = ', num2str(if_force)]);
-saveas(gcf, strcat('../Final Report/assets/TP2_ref_Dif_solution_', num2str(if_force), '.png'));
-saveas(gcf, strcat('assets/TP2_ref_Dif_solution_', num2str(if_force), '.png'));
+%saveas(gcf, strcat('../Final Report/assets/TP2_ref_Dif_solution_', num2str(if_force), '.png'));
+%saveas(gcf, strcat('assets/TP2_ref_Dif_solution_', num2str(if_force), '.png'));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot collectively
@@ -115,7 +114,7 @@ shading interp
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Reduction of the model PGD
-ucldot = derivative(nt, u, It);
+[ucldot, D] = derivative(nt, u, It);
 ucl = (1-lx/L)'*ud0d + (lx/L)'*udLd;
 G = F - K*ucl - M*ucldot;
 
@@ -130,14 +129,16 @@ for i = 1:nb_modes
         old_lambda = lambda;
         iter = iter + 1;
         intlambda = lambda * It * lambda';
-        H = intlambda * K;
+        H = intlambda * K + (lambda*It*(D*lambda'))*Ix;
         J = lambda * It * G';
         Huu = H(dof_u, dof_u);
         Ju = J(dof_u);
         Lambda = zeros(nx, 1);
         Lambda(dof_u) = (Huu\Ju');
         Lambda = Lambda./ sqrt(Lambda'*K*Lambda);
-        lambda = (Lambda' * G);
+        h = (Lambda' * G)';
+        m = (Lambda' * Ix * Lambda);
+        lambda(2:end) = (m*D(2:end, 2:end) + eye(size(D(2:end, 2:end))))\h(2:end);
         er = ((lambda - old_lambda)*It*(lambda - old_lambda)')/ intlambda;
     end
     G = G - K*Lambda*lambda;
