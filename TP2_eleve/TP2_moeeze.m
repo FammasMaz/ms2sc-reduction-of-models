@@ -41,11 +41,11 @@ udLd = -sin(4*pi*lt)/T; % boundary condition
 
 %% discrete force
 if if_force==1
-    f = (1e3 * (sin(3*pi*lt)/T)' * (sin(5*pi*lx)/L))';
+    %f = (1e3 * (sin(3*pi*lt)/T)' * (sin(5*pi*lx)/L))';
     [mesh_x_f,mesh_t_f] = meshgrid(tf,xf);
     [mesh_x_g,mesh_t_g] = meshgrid(tc,xc);
-    %fg = 10*rand(nt/10,nx/10);
-    %f = interp2(mesh_x_g,mesh_t_g,fg,mesh_x_f,mesh_t_f,'spline');
+    fg = 10*rand(nt/10,nx/10);
+    f = interp2(mesh_x_g,mesh_t_g,fg,mesh_x_f,mesh_t_f,'spline');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -121,7 +121,7 @@ U_SVD = zeros(nt,nx);
 lambda = lt;
 iter = 0;
 W = zeros(nx, nt) + ucl;
-nb_modes = 9;
+nb_modes = 30;
 error = zeros(1, nb_modes);
 error_svd = zeros(1, nb_modes);
 for i = 1:nb_modes
@@ -182,8 +182,10 @@ for i = 1:nb_modes
     title(Title2)    
     pause(0.5)
     figure(3)
-    subplot(3,3,i)
-    mesh(lx_mesh,lt_mesh,(Lambda * lambda)');
+    if i < 10
+        subplot(3,3,i)
+        mesh(lx_mesh,lt_mesh,(Lambda * lambda)');
+    end
 end
 
 u_red = W;
