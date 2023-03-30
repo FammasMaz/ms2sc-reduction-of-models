@@ -39,8 +39,11 @@ Ug = rand(n_T/10,n_X/10);
 Uf = interp2(mesh_x_g,mesh_t_g,Ug,mesh_x_f,mesh_t_f,'spline');
 
 % Display distribution
- 
-
+ figure(1)
+subplot(1,4,1)
+surf(xc,tc,Ug)
+title("Coarse distribution")
+shading interp
 subplot(1,4,2)
 surf(xf,tf,Uf)
 title("Fine distribution")
@@ -63,7 +66,7 @@ end
 %% PGD Approximation
 
 % Number of modes
-n_modes    = 15;
+n_modes    = 10;
 
 % initialisation
 Lambda     = zeros(n_T,n_modes);
@@ -71,7 +74,12 @@ Gamma      = zeros(n_X,n_modes);
 U_PGD      = zeros(n_T,n_X);
 PGD_error = zeros(n_modes,1);
 Ustar = zeros(n_T,n_X);
-error = [];
+error = zeros(1, n_modes);
+error_svd = zeros(1, n_modes);
+
+% Do SVD
+[X,S,V] = svd(full(Uf));
+U_SVD = zeros(n_T,n_X);
 
 %% 
 % Greedy algorithm + fixed point 
@@ -128,17 +136,20 @@ for mode = 1:n_modes
 
     % compute the new PGD approximation with the added mode
     U_PGD = Lambda*Gamma';
-    
+    U_SVD = X(:,1:mode)*S(1:mode,1:mode)*V(:,1:mode)';    
     % Calculation of the reconstruction error with the sptio-temporal norm
     num = zeros(n_X, 1);
     den = zeros(n_X, 1);
     for i=1:n_X
         num(i) = (Uf(:, i) - U_PGD(:,i))'*It*(Uf(:, i) - U_PGD(:,i));
         den(i) = (Uf(:, i))'*It*(Uf(:, i));
+        num_svd(i) = (Uf(:, i) - U_SVD(:, i))'*It*(Uf(:, i) - U_SVD(:, i));
     end
     num = num'*Ix*num;
     den = den'*Ix*den;
-    error = [error num/den];
+    num_svd = num_svd*Ix*num_svd';
+    error(mode) = num/den;
+    error_svd(mode) = num_svd/den;
     subplot(1,4,3)
     surf(mesh_x_f,mesh_t_f,real(U_PGD))
     xlabel('x')
@@ -148,14 +159,17 @@ for mode = 1:n_modes
     Title = ["Approximation with "+ mode " mode(s)"];
     title(Title)
     subplot(1,4,4);
-    plot(error);
+    semilogy(real(error), 'r');
+    hold on
+    semilogy(real(error_svd), 'b');
+    legend('PGD', 'SVD');
     xlabel('modes');
     ylabel('error');
     Title2 = ["Error with "+ mode " mode(s)"];
     title(Title2)    
     pause(0.5)
 end
-
+sgtitle('PGD approximation of a random field with Gram-Schmidt orthogonalization')
 saveas(figure(1),'Results.png');
 saveas(figure(1),'../Final Report/assets/TP_1_PGD_Results.png');
 
