@@ -133,6 +133,7 @@ W = zeros(nx, nt) + ucl;
 nb_modes = 13;
 error = zeros(1, nb_modes);
 error_svd = zeros(1, nb_modes);
+Lambda_con = zeros(nx, nb_modes);
 for i = 1:nb_modes
     er = 1;
     while er > 1e-3
@@ -153,6 +154,8 @@ for i = 1:nb_modes
     end
     G = G - K*Lambda*lambda;
     W = W + Lambda * lambda;
+    Lambda_con(:, i) = Lambda;
+    Q = grahm_shmidt(Lambda_con, K);
     
     % Do SVD
     U_SVD = X(:,1:i)*S(1:i,1:i)*V(:,1:i)';

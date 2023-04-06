@@ -7,7 +7,7 @@ close all
 clc
 %% 
 % Time discretisation
-
+grahm = 1;
 T   = 10; 
 n_T = 400; 
 tf  = linspace(0,T,n_T);     % fine discretisation
@@ -123,17 +123,26 @@ for mode = 1:n_modes
      % Note that mode orthogonalization is not useful here,
      % but it will be in the next TP 
      % (a priori use of the PGD).
-    Gammanew = Gammai;
-    Gammanew_orth = Gammai;
-    Lambdanew = Lambdai;
-    for m=1:mode-1
-        Gammanew_orth = Gammanew_orth - sqrt(Gammanew'*Ix*Gamma(:, m))*Gamma(:, m);
-        Lambda(:, m) = Lambda(:, m) + Lambdanew*sqrt(Gammanew'*Ix*Gamma(:,m));
+     if grahm == 1
+        Gammanew = Gammai;
+        Gammanew_orth = Gammai;
+        Lambdanew = Lambdai;
+        for m=1:mode-1
+            Gammanew_orth = Gammanew_orth - sqrt(Gammanew'*Ix*Gamma(:, m))*Gamma(:, m);
+            Lambda(:, m) = Lambda(:, m) + Lambdanew*sqrt(Gammanew'*Ix*Gamma(:,m));
+        end
+
+        Gamma(:, mode) = Gammanew/sqrt(Gammanew_orth'*Ix*Gammanew_orth);
+        Lambda(:, mode) = Lambdanew * sqrt(Gammanew_orth'*Ix*Gammanew_orth);
+        tit = 'PGD approximation of a random field with Grahm-Schmidt orthogonalization';
+        fn = '../Final Report/assets/TP_1_PGD_Results_grahm.png'
+    elseif grahm == 0
+        Gamma(:, mode) = Gammai;
+        Lambda(:, mode) = Lambdai;
+        tit = 'PGD approximation of a random field without Grahm-Schmidt orthogonalization';
+        fn = '../Final Report/assets/TP_1_PGD_Results.png'
     end
-
-    Gamma(:, mode) = Gammanew/sqrt(Gammanew_orth'*Ix*Gammanew_orth);
-    Lambda(:, mode) = Lambdanew * sqrt(Gammanew_orth'*Ix*Gammanew_orth);
-
+    
     % compute the new PGD approximation with the added mode
     U_PGD = Lambda*Gamma';
     U_SVD = X(:,1:mode)*S(1:mode,1:mode)*V(:,1:mode)';    
@@ -169,8 +178,8 @@ for mode = 1:n_modes
     title(Title2)    
     pause(0.5)
 end
-sgtitle('PGD approximation of a random field with Gram-Schmidt orthogonalization')
+sgtitle(tit)
 saveas(figure(1),'Results.png');
-saveas(figure(1),'../Final Report/assets/TP_1_PGD_Results.png');
+saveas(figure(1),fn);
 
 
