@@ -25,7 +25,7 @@ dt = T/(nt-1); % time step
 
 Ix = sparse(nx, nx);
 It = sparse(nt, nt);
-
+update_g = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Time steps
 lx = lx0:dx:L; % grid points
@@ -101,8 +101,8 @@ xlabel('x')
 ylabel('t')
 zlabel('u')
 title(['Solution of the 1D Diff wave equation with force = ', num2str(if_force)]);
-saveas(gcf, strcat('../Final Report/assets/TP2_ref_Dif_solution_', num2str(if_force), '.png'));
-saveas(gcf, strcat('assets/TP2_ref_Dif_solution_', num2str(if_force), '.png'));
+%saveas(gcf, strcat('../Final Report/assets/TP2_ref_Dif_solution_', num2str(if_force), '.png'));
+%saveas(gcf, strcat('assets/TP2_ref_Dif_solution_', num2str(if_force), '.png'));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot collectively
@@ -121,6 +121,7 @@ figure(3)
 [ucldot, D] = derivative(nt, u, It);
 ucl = (1-lx/L)'*ud0d + (lx/L)'*udLd;
 G = F - K*ucl - M*ucldot;
+G_fix = G;
 
 % Do SVD
 [X,S,V] = svd(full(u));
@@ -130,10 +131,11 @@ U_SVD = zeros(nt,nx);
 lambda = lt;
 iter = 0;
 W = zeros(nx, nt) + ucl;
-nb_modes = 13;
+nb_modes = 5;
 error = zeros(1, nb_modes);
 error_svd = zeros(1, nb_modes);
-Lambda_con = zeros(nx, nb_modes);
+Lambda_con = [];
+G_var = [];
 for i = 1:nb_modes
     er = 1;
     while er > 1e-3
@@ -152,11 +154,25 @@ for i = 1:nb_modes
         lambda(2:end) = (m*D(2:end, 2:end) + eye(size(D(2:end, 2:end))))\h(2:end);
         er = ((lambda - old_lambda)*It*(lambda - old_lambda)')/ intlambda;
     end
-    G = G - K*Lambda*lambda;
-    W = W + Lambda * lambda;
-    Lambda_con(:, i) = Lambda;
-    Q = grahm_shmidt(Lambda_con, K);
-    
+
+    if update_g==1
+        Lambda_con = grahm_shmidt([Lambda_con Lambda], K);
+        m_update = Lambda_con'*Ix*Lambda_con;
+        k_update = Lambda_con'*K*Lambda_con;
+        F_update = Lambda_con'*G_fix;
+        [~, lambda_upt] = ode45(@(t, y) deriv(t, y, m_update, k_update, F_update,dt), lt, zeros(i,1));
+        size(lambda_upt)
+        size(Lambda_con)
+        size(Lambda)
+        G = G_fix - K*Lambda_con*lambda_upt';
+        W = ucl + Lambda_con * lambda_upt';
+
+    else
+        G = G - K*Lambda*lambda - M*Lambda*lambda*It*lambda';
+        W = W + Lambda * lambda;
+    end
+
+
     % Do SVD
     U_SVD = X(:,1:i)*S(1:i,1:i)*V(:,1:i)';
     num_svd = zeros(nx, 1);
@@ -206,14 +222,14 @@ u_red = W;
 figure(2)
 fprintf('\nNumber of iterations: %d', iter);
 fprintf('\n\nFinal error: %d', er);
-saveas(gcf, strcat('../Final Report/assets/TP2_red_anim_solution_', num2str(if_force), '.png'));
-saveas(gcf, strcat('assets/TP2_red_anim_solution_', num2str(if_force), '.png'));
+%saveas(gcf, strcat('../Final Report/assets/TP2_red_anim_solution_', num2str(if_force), '.png'));
+%saveas(gcf, strcat('assets/TP2_red_anim_solution_', num2str(if_force), '.png'));
 
 % Plot the reduced modes
 figure(3)
 sgtitle('Modes of the reduced model')
-saveas(gcf, strcat('assets/TP2_red_modes_', num2str(if_force), '.png'));
-saveas(gcf, strcat('../Final Report/assets/TP2_red_modes_', num2str(if_force), '.png'));
+%saveas(gcf, strcat('assets/TP2_red_modes_', num2str(if_force), '.png'));
+%saveas(gcf, strcat('../Final Report/assets/TP2_red_modes_', num2str(if_force), '.png'));
 
 
 %% Cost = no.modes * n_iter * cost
@@ -224,6 +240,11 @@ xlabel('x')
 ylabel('t')
 zlabel('u')
 title(['Reduced Solution of the 1D wave equation with force = ', num2str(if_force)]);
-saveas(gcf, strcat('../Final Report/assets/TP2_red_solution_', num2str(if_force), '.png'));
-saveas(gcf, strcat('assets/TP2_red_solution_', num2str(if_force), '.png'));
+%saveas(gcf, strcat('../Final Report/assets/TP2_red_solution_', num2str(if_force), '.png'));
+%saveas(gcf, strcat('assets/TP2_red_solution_', num2str(if_force), '.png'));
+
+function deriv = deriv(t, lam, m, k, ht, dt)
+    h = ht(:, round(t/dt + 1));
+    deriv = (m^(-1))*(h - k*lam);
+end
 
